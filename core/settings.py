@@ -55,11 +55,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+AUTH_USER_MODEL = 'test_app.User'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,6 +77,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     },
+# }
+
 if env.bool('REMOTE_DB'):
     DATABASES = {
         'default': {
@@ -91,7 +100,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'Name' : BASE_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         },
     }
 
@@ -128,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'ru'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
