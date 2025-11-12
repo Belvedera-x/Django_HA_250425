@@ -168,9 +168,12 @@ class Category(models.Model):
         return self.name
 
     class Meta:
-        db_table = "categories"
+        db_table = "task_manager_category"
         verbose_name = "Category"
         verbose_name_plural = "Categories"
+        constraints = [
+            models.UniqueConstraint(fields=["name"], name="unique_name"),
+        ]
 
 
 class Task(models.Model):
@@ -195,9 +198,13 @@ class Task(models.Model):
         return self.title
 
     class Meta:
-        db_table = "tasks"
+        db_table = "task_manager_task"
+        ordering = ["-created_at", ]
         verbose_name = "Task"
         verbose_name_plural = "Tasks"
+        constraints = [
+            models.UniqueConstraint(fields=["title"], name="unique_title"),
+        ]
 
 
 class SubTask(models.Model):
@@ -222,9 +229,13 @@ class SubTask(models.Model):
         return self.title
 
     class Meta:
-        db_table = "subtasks"
+        db_table = "task_manager_subtask"
+        ordering = ["-created_at", ]
         verbose_name = "SubTask"
         verbose_name_plural = "SubTasks"
+        constraints = [
+            models.UniqueConstraint(fields=["title"], name="unique_SubTask_title"),
+        ]
 
 
 
