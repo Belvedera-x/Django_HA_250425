@@ -59,11 +59,47 @@ class CustomUserAdmin(BaseUserAdmin):
     ordering = ('username',)  # порядок оторбажения данных (сортировка)
 
 
+class TaskAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "status",
+        "deadline",
+        "created_at",
+    )
+    list_filter = (
+        "categories",
+        "status",
+        "created_at",
+    )
+    search_fields = (
+        'title',
+    )
+
+
+class SubTaskAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "created_at",
+    )
+    search_fields = (
+        'title',
+    )
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+    )
+    search_fields = (
+        "name",
+    )
+
+
 admin.site.register(Book)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.unregister(Group)
 admin.site.register(Group)
-admin.site.register(Task)
-admin.site.register(SubTask)
-admin.site.register(Category)
+admin.site.register(Task, TaskAdmin)
+admin.site.register(SubTask, SubTaskAdmin)
+admin.site.register(Category, CategoryAdmin)
 
