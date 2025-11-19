@@ -197,6 +197,11 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    def short_title(self):
+        if len(self.title) > 10:
+            return self.title[:10] + "..."
+        return self.title
+
     class Meta:
         db_table = "task_manager_task"
         ordering = ["-created_at", ]
