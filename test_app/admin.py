@@ -1,11 +1,12 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
-from test_app.models import Book, Post, UserProfile, User, SubTask, Category, Task
+from test_app.models import Book, Post, UserProfile, User, SubTask, Category, Task, TaskStatus
 
 
+@admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = (
         'nickname',
@@ -59,9 +60,19 @@ class CustomUserAdmin(BaseUserAdmin):
     ordering = ('username',)  # порядок оторбажения данных (сортировка)
 
 
+
+
+
+class SubTaskInline(admin.TabularInline):
+    model = SubTask
+    extra = 1
+
+
+
+@admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     list_display = (
-        "title",
+        "short_title",
         "status",
         "deadline",
         "created_at",
@@ -74,18 +85,35 @@ class TaskAdmin(admin.ModelAdmin):
     search_fields = (
         'title',
     )
+    inlines = [SubTaskInline]
 
-
+@admin.register(SubTask)
 class SubTaskAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "status",
         "created_at",
     )
     search_fields = (
         'title',
     )
+    actions = ["status_done"]
+
+    @admin.action(description="Перевести подзадачи в статус Done")
+    def status_done(self, request, queryset):
+        updated = queryset.update(
+            status=TaskStatus.DONE.name
+        )
+
+        return self.message_user(
+            request,
+            "Successfully set 'done' status for {} SubTasks".format(updated),
+            messages.SUCCESS
+        )
 
 
+
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -96,10 +124,6 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Book)
-admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.unregister(Group)
 admin.site.register(Group)
-admin.site.register(Task, TaskAdmin)
-admin.site.register(SubTask, SubTaskAdmin)
-admin.site.register(Category, CategoryAdmin)
 
