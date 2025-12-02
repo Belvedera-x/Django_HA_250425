@@ -39,11 +39,11 @@ class TaskStatsView(APIView):
         total_tasks = tasks.count()
 
         status_counts = {
-            "new": tasks.filter(status="new").count(),
-            "in_progress": tasks.filter(status="in_progress").count(),
-            "pending": tasks.filter(status="pending").count(),
-            "blocked": tasks.filter(status="blocked").count(),
-            "done": tasks.filter(status="done").count(),
+            "new": tasks.filter(status="NEW").count(),
+            "in_progress": tasks.filter(status="IN_PROGRESS").count(),
+            "pending": tasks.filter(status="PENDING").count(),
+            "blocked": tasks.filter(status="BLOCKED").count(),
+            "done": tasks.filter(status="DONE").count(),
         }
 
         overdue_tasks = tasks.filter(deadline__lt=timezone.now()).count()
