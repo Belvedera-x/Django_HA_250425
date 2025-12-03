@@ -1,11 +1,17 @@
 from django.http import HttpResponse, HttpRequest
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from django.utils import timezone
-from test_app.models import SubTask, Task, TaskStatus
-from test_app.serializers import SubTaskSerializer, TaskCreateSerializer, TaskDetailSerializer
-
+from test_app.models import SubTask, Task
+from test_app.paginator import MyPagPaginator
+from test_app.serializers import (
+    SubTaskSerializer,
+    TaskCreateSerializer,
+    TaskDetailSerializer,
+    SubTaskCreateSerializer,
+    TaskSerializer
+)
 
 def home_page(request: HttpRequest):
     return HttpResponse(
@@ -16,6 +22,52 @@ def name_page(request: HttpRequest, user_name):
     return HttpResponse(
         f"<h1>Hello {user_name}!!!</h1>"
     )
+
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all().order_by("-created_at")
+    serializer_class = TaskSerializer
+    filter_backends = []
+
+
+
+    def get_queryset(self):
+        queryset = Task.objects.all().order_by("-created_at")
+        day_of_week = self.request.query_params.get("day_of_week")
+        if day_of_week:
+            days = {
+                'monday': 2,
+                'tuesday': 3,
+                'wednesday': 4,
+                'thursday': 5,
+                'friday': 6,
+                'saturday': 7,
+                'sunday': 1,
+            }
+            day_number = days.get(day_of_week.lower())
+            if day_number:
+                queryset = queryset.filter(deadline__week_day=day_number)
+        return queryset
+
+
+
+class SubtaskFilterViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = SubTask.objects.all().order_by("-created_at")
+    serializer_class = SubTaskSerializer
+    pagination_class = MyPagPaginator
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        task_title = self.request.query_params.get("task_title")
+        status_params = self.request.query_params.get("status")
+
+        if task_title:
+            queryset = queryset.filter(task__title__icontains=task_title.strip())
+
+        if status_params:
+            queryset = queryset.filter(status__iexact=status_params.strip())
+
+        return queryset
+
 
 
 class TaskListCreateView(APIView):
@@ -59,11 +111,11 @@ class TaskStatsView(APIView):
 class SubTaskListCreateView(APIView):
     def get(self, request):
         subtasks = SubTask.objects.all()
-        serializer = SubTaskSerializer(subtasks, many=True)
+        serializer = SubTaskCreateSerializer(subtasks, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = SubTaskSerializer(data=request.data)
+        serializer = SubTaskCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
