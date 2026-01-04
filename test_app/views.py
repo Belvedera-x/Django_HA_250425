@@ -1,3 +1,6 @@
+from rest_framework import generics, filters
+from django_filters.rest_framework import DjangoFilterBackend
+
 from django.http import HttpResponse, HttpRequest
 from rest_framework.response import Response
 from rest_framework import status, viewsets
@@ -70,19 +73,26 @@ class SubtaskFilterViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 
-class TaskListCreateView(APIView):
-    def get(self, request):
-        tasks = Task.objects.all()
-        serializer = TaskDetailSerializer(tasks, many=True)
-        return Response(serializer.data)
+class TaskListCreateGenericView(generics.ListCreateAPIView):
+    queryset = Task.objects.all().order_by("-created_at")
+    serializer_class = TaskSerializer
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
+
+    filterset_fields = ["status", "deadline"]
+    search_fields = ["title", "description"]
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
 
 
-    def post(self, request):
-        serializer = TaskCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TaskRetrieveUpdateDestroyGenericView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskDetailSerializer
 
 
 class TaskStatsView(APIView):
@@ -108,49 +118,25 @@ class TaskStatsView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class SubTaskListCreateView(APIView):
-    def get(self, request):
-        subtasks = SubTask.objects.all()
-        serializer = SubTaskCreateSerializer(subtasks, many=True)
-        return Response(serializer.data)
+class SubTaskListCreateGenericView(generics.ListCreateAPIView):
+    queryset = SubTask.objects.all().order_by("-created_at")
+    serializer_class = SubTaskCreateSerializer
+    pagination_class = MyPagPaginator
 
-    def post(self, request):
-        serializer = SubTaskCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
 
-
-
-class SubTaskDetailUpdateDeleteView(APIView):
-    def get_object(self, pk):
-        try:
-            return SubTask.objects.get(pk=pk)
-        except SubTask.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        subtask = self.get_object(pk)
-        if not subtask:
-            return Response({"error": "Subtask not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = SubTaskSerializer(subtask)
-        return Response(serializer.data)
+    filterset_fields = ["status", "deadline"]
+    search_fields = ["title", "description"]
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
 
 
-    def put(self, request, pk):
-        subtask = self.get_object(pk)
-        if not subtask:
-            return Response({"error": "Subtask not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = SubTaskSerializer(instance=subtask, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        subtask = self.get_object(pk)
-        if not subtask:
-            return Response({"error": "Subtask not found"}, status=status.HTTP_404_NOT_FOUND)
-        subtask.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class SubTaskRetrieveUpdateDestroyGenericView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+    queryset = SubTask.objects.all()
+    serializer_class = SubTaskSerializer
