@@ -161,8 +161,25 @@ class TaskStatus(StrEnum):
         return [(attr.name, attr.value) for attr in cls]
 
 
+class CategoryManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
+
 class Category(models.Model):
     name = models.CharField(max_length=120, verbose_name="Category name")
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = CategoryManager()
+    all_objects = models.Manager()
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["is_deleted", "deleted_at"])
 
     def __str__(self):
         return self.name
