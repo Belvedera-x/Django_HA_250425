@@ -148,6 +148,7 @@ class SubTaskRetrieveUpdateDestroyGenericView(
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategoryCreateSerializer
+    ordering = ["id"]
 
     def perform_destroy(self, instance):
         instance.delete()  # soft delete
