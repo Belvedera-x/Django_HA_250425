@@ -2,18 +2,21 @@ from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from django.http import HttpResponse, HttpRequest
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from django.utils import timezone
-from test_app.models import SubTask, Task
+from rest_framework.viewsets import ModelViewSet
+
+from test_app.models import SubTask, Task, Category
 from test_app.paginator import MyPagPaginator
 from test_app.serializers import (
     SubTaskSerializer,
     TaskCreateSerializer,
     TaskDetailSerializer,
     SubTaskCreateSerializer,
-    TaskSerializer
+    TaskSerializer, CategoryCreateSerializer
 )
 
 def home_page(request: HttpRequest):
@@ -140,3 +143,19 @@ class SubTaskRetrieveUpdateDestroyGenericView(
 ):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskSerializer
+
+
+class CategoryViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategoryCreateSerializer
+
+    def perform_destroy(self, instance):
+        instance.delete()  # soft delete
+
+    @action(detail=True, methods=['get'])
+    def count_tasks(self, request, pk=None):
+        category = self.get_object()
+        return Response({
+            "category_id": category.id,
+            "tasks_count": category.tasks.count()
+        })

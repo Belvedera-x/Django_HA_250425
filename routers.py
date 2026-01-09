@@ -1,8 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
+from test_app.views import CategoryViewSet
 
-router = SimpleRouter()
+
+router = DefaultRouter()
+router.register('categories', CategoryViewSet)
 
 
 urlpatterns = [
