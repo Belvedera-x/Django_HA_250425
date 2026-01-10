@@ -8,7 +8,9 @@ from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated, AllowAny, SAFE_METHODS
 
+from permissions import IsModeratorOrAdmin, IsAdmin
 from test_app.models import SubTask, Task, Category
 from test_app.paginator import MyPagPaginator
 from test_app.serializers import (
@@ -32,6 +34,7 @@ def name_page(request: HttpRequest, user_name):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all().order_by("-created_at")
     serializer_class = TaskSerializer
+    permission_classes = [IsModeratorOrAdmin]
     filter_backends = []
 
 
@@ -59,6 +62,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 class SubtaskFilterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SubTask.objects.all().order_by("-created_at")
     serializer_class = SubTaskSerializer
+    permission_classes = [AllowAny]
     pagination_class = MyPagPaginator
 
     def get_queryset(self):
@@ -79,6 +83,7 @@ class SubtaskFilterViewSet(viewsets.ReadOnlyModelViewSet):
 class TaskListCreateGenericView(generics.ListCreateAPIView):
     queryset = Task.objects.all().order_by("-created_at")
     serializer_class = TaskSerializer
+    permission_classes = [IsModeratorOrAdmin]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -96,9 +101,11 @@ class TaskListCreateGenericView(generics.ListCreateAPIView):
 class TaskRetrieveUpdateDestroyGenericView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskDetailSerializer
+    permission_classes = [IsModeratorOrAdmin]
 
 
 class TaskStatsView(APIView):
+    permission_classes = [IsModeratorOrAdmin]
     def get(self, request):
         tasks = Task.objects.all()
         total_tasks = tasks.count()
@@ -124,6 +131,7 @@ class TaskStatsView(APIView):
 class SubTaskListCreateGenericView(generics.ListCreateAPIView):
     queryset = SubTask.objects.all().order_by("-created_at")
     serializer_class = SubTaskCreateSerializer
+    permission_classes = [IsModeratorOrAdmin]
     pagination_class = MyPagPaginator
 
     filter_backends = [
@@ -143,12 +151,17 @@ class SubTaskRetrieveUpdateDestroyGenericView(
 ):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskSerializer
+    permission_classes = [IsModeratorOrAdmin]
 
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategoryCreateSerializer
     ordering = ["id"]
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return []
+        return [IsAdmin()]
 
     def perform_destroy(self, instance):
         instance.delete()  # soft delete
