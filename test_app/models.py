@@ -8,6 +8,7 @@ from django.utils.translation.trans_null import gettext_lazy as _
 from django.utils import timezone
 
 from django.db import models
+from django.conf import settings
 
 
 class Role(StrEnum):  # Енам класс. Похоже как мы делали список с кортежами, только мощнее(можно создвать свои настройки, методы и прочее)
@@ -208,6 +209,11 @@ class Task(models.Model):
         default=TaskStatus.NEW,
         verbose_name="Task status"
     )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tasks"
+    )
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -243,6 +249,11 @@ class SubTask(models.Model):
         choices=TaskStatus.choices(),
         default=TaskStatus.NEW,
         verbose_name="SubTask status"
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="subtasks"
     )
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
