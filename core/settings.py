@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "django_filters",
+    "drf_yasg",
 
     # local -свое личное что я создал
     'test_app.apps.TestAppConfig',

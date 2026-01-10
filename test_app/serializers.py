@@ -4,6 +4,8 @@ from rest_framework import serializers
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source="owner.username")
+
     class Meta:
         model = Task
         fields = '__all__'
@@ -11,6 +13,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class SubTaskCreateSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source="owner.username")
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
@@ -22,7 +25,8 @@ class SubTaskCreateSerializer(serializers.ModelSerializer):
             'created_at',
             'deadline',
             'task',
-            'status'
+            'status',
+            'owner',
         ]
 
 

@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny, SAFE_METHODS
 
-from permissions import IsModeratorOrAdmin, IsAdmin
+from permissions import IsModeratorOrAdmin, IsAdmin, IsOwnerOrReadOnly
 from test_app.models import SubTask, Task, Category
 from test_app.paginator import MyPagPaginator
 from test_app.serializers import (
@@ -34,8 +34,17 @@ def name_page(request: HttpRequest, user_name):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all().order_by("-created_at")
     serializer_class = TaskSerializer
-    permission_classes = [IsModeratorOrAdmin]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = []
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def my(self, request):
+        tasks = Task.objects.filter(owner=request.user)
+        serializer = self.get_serializer(tasks, many=True)
+        return Response(serializer.data)
 
 
 
@@ -96,12 +105,15 @@ class TaskListCreateGenericView(generics.ListCreateAPIView):
     ordering_fields = ["created_at"]
     ordering = ["-created_at"]
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 
 class TaskRetrieveUpdateDestroyGenericView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskDetailSerializer
-    permission_classes = [IsModeratorOrAdmin]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 
 class TaskStatsView(APIView):
@@ -145,13 +157,16 @@ class SubTaskListCreateGenericView(generics.ListCreateAPIView):
     ordering_fields = ["created_at"]
     ordering = ["-created_at"]
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class SubTaskRetrieveUpdateDestroyGenericView(
     generics.RetrieveUpdateDestroyAPIView
 ):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskSerializer
-    permission_classes = [IsModeratorOrAdmin]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 
 class CategoryViewSet(ModelViewSet):
