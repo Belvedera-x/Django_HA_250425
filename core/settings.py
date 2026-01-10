@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_filters",
     "drf_yasg",
+    "rest_framework_simplejwt.token_blacklist",
 
     # local -свое личное что я создал
     'test_app.apps.TestAppConfig',
