@@ -114,6 +114,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@taskmanager.local"
+
 ROOT_URLCONF = 'core.urls'
 AUTH_USER_MODEL = 'test_app.User'
 
