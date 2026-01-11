@@ -209,6 +209,12 @@ class Task(models.Model):
         default=TaskStatus.NEW,
         verbose_name="Task status"
     )
+    last_notified_status = models.CharField(
+        max_length=35,
+        choices=TaskStatus.choices(),
+        null=True,
+        blank=True
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
